@@ -1,0 +1,69 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      Role
+  requests  Request[]
+  reservations Reservation[]
+}
+
+enum Role {
+  STUDENT
+  TECHNICIAN
+}
+
+model ObjectItem {
+  id          String     @id @default(uuid())
+  name        String
+  available   Boolean    @default(true)
+  requests    Request[]
+  reservations Reservation[]
+}
+
+model Request {
+  id          String    @id @default(uuid())
+  user        User      @relation(fields: [userId], references: [id])
+  userId      String
+  object      ObjectItem @relation(fields: [objectId], references: [id])
+  objectId    String
+  status      RequestStatus @default(PENDING)
+  requestedAt DateTime  @default(now())
+  approvedAt  DateTime?
+  returnedAt  DateTime?
+}
+
+enum RequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CONCLUDED
+}
+
+model Reservation {
+  id         String     @id @default(uuid())
+  user       User       @relation(fields: [userId], references: [id])
+  userId     String
+  object     ObjectItem @relation(fields: [objectId], references: [id])
+  objectId   String
+  date       DateTime
+  timeStart  String
+  timeEnd    String
+  approved   Boolean    @default(false)
+  pickedUp   Boolean    @default(false)
+}
